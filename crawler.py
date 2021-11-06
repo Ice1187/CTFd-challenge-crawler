@@ -6,11 +6,12 @@ user = 'user'
 pswd = 'pass'
 url  = 'http://127.0.0.1'
 ctf_dir = './my-ctf'  # the dir to store the challenges (will be created)
+encoding = 'utf-8'
 
 s = rq.Session()
 
 def pprint_json(text):
-	print(json.dumps(text, indent=2))
+	print(json.dumps(text, indent=2, ensure_ascii=False))
 
 def get_nonce():
 	res = s.get(url+'/login').text
@@ -70,16 +71,17 @@ def store_challenge(chall_info):
 	category   = chall_info['category']
 	files      = chall_info['files']
 	print(chall_info['id'], name, category)
-	dir_path = f'{ctf_dir}/{category}/{name}/'
+	dir_path = f'{ctf_dir}/{category}/{name}/'.encode(encoding)
 	os.makedirs(dir_path, exist_ok=True)
 	for file_url in files:
 		# download challenge
 		res = rq.get(url+file_url)
 		file_name = file_url[file_url.rfind('/'):] if '?' not in file_url else file_url[file_url.rfind('/'):file_url.find('?')]
+		file_name = file_name.encode(encoding)
 		with open(dir_path+file_name, 'wb') as f:
 			f.write(res.content)
 		# write description
-		with open(dir_path+'readme.md', 'w') as f:
+		with open(dir_path+b'readme.md', 'w') as f:
 			f.write(f'''\
 ## {name}
 - value: {value}
